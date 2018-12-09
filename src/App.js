@@ -1,13 +1,21 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types'
+import { connect } from "react-redux";
 import logo from './logo.svg';
 import './App.css';
 import { Grid, Row, Col } from 'react-bootstrap';
 import SearchBar from './components/SearchBar';
 import SearchResults from './components/SearchResults'
-import SearchFacet from './components/SearchFacet'
+import SearchFacets from './components/SearchFacets'
 import SearchPagination from './components/SearchPagination'
+import {performSearch} from './actions'
 
 class App extends Component {
+
+  componentDidMount() {
+    this.props.performSearch();
+  }
+
   render() {
     return (
       <Grid>
@@ -24,7 +32,7 @@ class App extends Component {
         </Row>
         <Row>
           <Col md={3}>
-            <SearchFacet />
+            <SearchFacets />
           </Col>
           <Col md={9}>
             <SearchResults />
@@ -40,4 +48,15 @@ class App extends Component {
   }
 }
 
-export default App;
+SearchBar.propTypes = {
+  performSearch: PropTypes.func.isRequired
+}
+
+const mapDispatchToProps = (dispatch) => ({
+  performSearch: () => dispatch(performSearch())
+});
+
+export default connect(
+  null,
+  mapDispatchToProps
+)(App);
