@@ -26,9 +26,7 @@ class SearchFacetCheckbox extends React.Component {
     }
 
     render() {
-        const facet = this.props.facetValues[this.props.facetId],
-            isChecked = facet == null ? false : facet.indexOf(this.props.value.value) > -1;
-
+        const isChecked = this.props.facetValues == null ? false : this.props.facetValues.indexOf(this.props.value.value) > -1;
         return <Checkbox onChange={this.handleCheckboxChange} checked={isChecked}>{this.props.value.value} ({this.props.value.count})</Checkbox>;
     }
 }
@@ -36,15 +34,17 @@ class SearchFacetCheckbox extends React.Component {
 SearchFacetCheckbox.propTypes = {
     value: PropTypes.object.isRequired,
     facetId: PropTypes.string.isRequired,
-    facetValues: PropTypes.object.isRequired,
+    facetValues: PropTypes.array,
     addFacetSelection: PropTypes.func.isRequired,
     removeFacetSelection: PropTypes.func.isRequired,
     performSearch: PropTypes.func.isRequired
 };
 
-const mapStateToProps = (state) => ({
-    facetValues: state.facetValues
-});
+const mapStateToProps = (state, ownProps) => {
+    return {
+        facetValues: state[ownProps.facetId]
+    };
+};
 
 const mapDispatchToProps = (dispatch) => ({
     addFacetSelection: (facetId, facetValueId) => dispatch(addFacetSelection(facetId, facetValueId)),

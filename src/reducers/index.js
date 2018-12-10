@@ -1,7 +1,7 @@
 import { CHANGE_ENTERED_SEARCH_TEXT, PERFORM_SEARCH, 
     REQUEST_RESULTS, RECEIVE_RESULTS, ADD_FACET_SELECTION, 
     REMOVE_FACET_SELECTION, CHANGE_QUERY_TEXT,
-    CHANGE_PAGE_OFFSET
+    CHANGE_PAGE_OFFSET, SET_FACET_STATE
  } from '../constants';
 
 const initialState = {
@@ -17,7 +17,7 @@ const initialState = {
 };
 
 const handleRemoveFacetSelection = (state, action) => {
-    let ids = state.facetValues[action.facetId] || [];
+    let ids = state[action.facetId] || [];
 
     let idAlreadyExists = ids.indexOf(action.facetValueId) > -1;
 
@@ -32,16 +32,16 @@ const handleRemoveFacetSelection = (state, action) => {
     };
 
     if (!chosenIds.length) {
-        delete response.facetValues[action.facetId];
+        delete response[action.facetId];
     } else {
-        response.facetValues[action.facetId] = chosenIds;
+        response[action.facetId] = chosenIds;
     }
 
     return response;
 };
 
 const handleAddFacetSelection = (state, action) => {
-    let ids = state.facetValues[action.facetId] || [];
+    let ids = state[action.facetId] || [];
 
     let idAlreadyExists = ids.indexOf(action.facetValueId) > -1;
 
@@ -55,7 +55,7 @@ const handleAddFacetSelection = (state, action) => {
         ...state
     };
 
-    response.facetValues[action.facetId] = chosenIds;
+    response[action.facetId] = chosenIds;
 
     return response;
 }
@@ -98,6 +98,14 @@ const searchReducer = (state = initialState, action) => {
                 ...state,
                 pageOffset: action.offset
             }
+        case SET_FACET_STATE:
+            var response = {
+                ...state
+            };
+
+            response[action.facetId] = action.payload;
+
+            return response;
         default:
             return state;
     }

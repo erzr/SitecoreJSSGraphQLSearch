@@ -3,7 +3,8 @@ import {createApolloFetch} from 'apollo-fetch';
 import { CHANGE_ENTERED_SEARCH_TEXT, PERFORM_SEARCH, 
     REQUEST_RESULTS, RECEIVE_RESULTS,
     ADD_FACET_SELECTION, REMOVE_FACET_SELECTION,
-    CHANGE_QUERY_TEXT, CHANGE_PAGE_OFFSET } from '../constants';
+    CHANGE_QUERY_TEXT, CHANGE_PAGE_OFFSET,
+    SET_FACET_STATE } from '../constants';
 
 export const changeEnteredSearchText = text => ({
     type: CHANGE_ENTERED_SEARCH_TEXT,
@@ -13,6 +14,11 @@ export const changeEnteredSearchText = text => ({
 export const updatePageOffset = offset => ({
     type: CHANGE_PAGE_OFFSET,
     offset: offset
+});
+
+export const setFacetState = payload => ({
+    type: SET_FACET_STATE,
+    payload: payload
 });
 
 export const changeQueryText = text => ({
@@ -52,19 +58,21 @@ function requestResults(keyword) {
 function fetchResults(state) {
     return dispatch => {
         const fetch = createApolloFetch({
-            uri: 'http://sc9102.sc/sitecore/api/graph/items/master/?sc_apikey=%7B97FE0B3D-E92A-4CDB-A653-77065FD3E321%7D',
+            uri: window.SearchConfig.EndpointUrl,
         });
 
         const fieldsEqual = [
             { name:"_fullpath", value:"/sitecore/content/home*" }
         ];
 
-        for (var facet in state.facetValues) {
-            for (var facetValue of state.facetValues[facet]) {
-                fieldsEqual.push({
-                    name: facet,
-                    value: facetValue
-                });
+        for (var facet of window.SearchConfig.Facets) {
+            if (state[facet]) {
+                for (var facetValue of state[facet]) {
+                    fieldsEqual.push({
+                        name: facet,
+                        value: facetValue
+                    });
+                }
             }
         }
 

@@ -48,7 +48,7 @@ class App extends Component {
   }
 }
 
-SearchBar.propTypes = {
+App.propTypes = {
   performSearch: PropTypes.func.isRequired
 }
 
@@ -56,7 +56,11 @@ const mapDispatchToProps = (dispatch) => ({
   performSearch: () => dispatch(performSearch())
 });
 
+const mapStateToProps = (state) => ({
+
+});
+
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps
 )(App);

@@ -15,6 +15,13 @@ class SearchBar extends React.Component {
         this.handleInputKeypress = this.handleInputKeypress.bind(this);
     }
 
+    componentDidMount() {
+        if (!this.props.enteredSearchText && this.props.query)
+        {
+            this.props.changeEnteredSearchText(this.props.query);
+        }
+      }
+
     handleSearch() {
         this.props.updatePageOffset(0);
         this.props.changeQueryText(this.props.enteredSearchText);
@@ -59,7 +66,8 @@ SearchBar.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-    enteredSearchText: state.enteredSearchText
+    enteredSearchText: state.enteredSearchText,
+    query: state.query
 });
 
 const mapDispatchToProps = (dispatch) => ({
