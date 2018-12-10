@@ -11,8 +11,20 @@ import searchReducer from './reducers'
 import {CHANGE_PAGE_OFFSET, CHANGE_QUERY_TEXT, SET_FACET_STATE} from './constants';
 
 window.SearchConfig = {
-    Facets: ["contenttype"],
-    EndpointUrl: "http://sc9102.sc/sitecore/api/graph/items/master/?sc_apikey=%7B97FE0B3D-E92A-4CDB-A653-77065FD3E321%7D"
+    Facets: [
+        {
+            Title: "Category",
+            Id: "category"
+        },
+        {
+            Title: "Content Type",
+            Id: "contenttype"
+        }
+    ],
+    Endpoint: {
+        Url: "http://sc9102.sc/sitecore/api/graph/items/master/",
+        ApiKey: "{97FE0B3D-E92A-4CDB-A653-77065FD3E321}"
+    }
 };
 
 const composeEnhancers =
@@ -25,6 +37,7 @@ const composeEnhancers =
 const enhancer = composeEnhancers(
   applyMiddleware(thunk),
 );
+
 const store = createStore(searchReducer, enhancer);
 
 var params = {
@@ -43,9 +56,18 @@ var params = {
 };
 
 for (var facet of window.SearchConfig.Facets) {
-    params[facet] = {
-        selector: state => state[facet],
-        action: value => ({type: SET_FACET_STATE, payload: value, facetId: facet}),
+    var facetId = facet.Id;
+    params[facetId] = {
+        selector: (function(id) {
+            return function(state) {
+                return state[id];
+            }
+        })(facetId),
+        action: (function(id) {
+            return function(value) {
+                return {type: SET_FACET_STATE, payload: value, facetId: id}
+            }
+        })(facetId),
         stringToValue: string => string.split(','),
         valueToString: value => value.join(',')
     }

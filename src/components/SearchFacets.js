@@ -6,7 +6,8 @@ import SearchFacet from './SearchFacet';
 
 class SearchFacets extends React.Component {
     render() {
-        var facets = this.props.facets.map((facet, i) => <SearchFacet facet={facet} key={i} />);
+        var facets = this.props.facets.filter(x => x.values.length)
+            .map((facet, i) => <SearchFacet facet={facet} key={i} />);
 
         return (
             <div>

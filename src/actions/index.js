@@ -57,8 +57,11 @@ function requestResults(keyword) {
 
 function fetchResults(state) {
     return dispatch => {
+
+        const endpointUrl = `${window.SearchConfig.Endpoint.Url}?sc_apikey=${window.SearchConfig.Endpoint.ApiKey}`;
+
         const fetch = createApolloFetch({
-            uri: window.SearchConfig.EndpointUrl,
+            uri: endpointUrl,
         });
 
         const fieldsEqual = [
@@ -66,16 +69,17 @@ function fetchResults(state) {
         ];
 
         for (var facet of window.SearchConfig.Facets) {
-            if (state[facet]) {
-                for (var facetValue of state[facet]) {
+            if (state[facet.Id]) {
+                for (var facetValue of state[facet.Id]) {
                     fieldsEqual.push({
-                        name: facet,
+                        name: facet.Id,
                         value: facetValue
                     });
                 }
             }
         }
 
+        // hack, refactor this.
         let fieldsEqualString = JSON.stringify(fieldsEqual);
 
         var name = new RegExp('"name"', 'g');
@@ -84,10 +88,12 @@ function fetchResults(state) {
         var value = new RegExp('"value"', 'g');
         fieldsEqualString = fieldsEqualString.replace(value, "value");
 
+        var facetFields = JSON.stringify(window.SearchConfig.Facets.map(x => x.Id));
+
         var query = `{
             search(
                 fieldsEqual:${fieldsEqualString}
-                  facetOn:["contenttype_s"]
+                  facetOn:${facetFields}
                   keyword:"${state.query}"
                   first: ${state.pageSize}
   		          after: "${state.pageOffset}") {
