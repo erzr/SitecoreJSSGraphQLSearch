@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types'
 import { connect } from "react-redux";
-import {Checkbox} from 'react-bootstrap';
-import {addFacetSelection, removeFacetSelection, performSearch, updatePageOffset} from '../actions'
+import {Form} from 'react-bootstrap';
+import {addFacetSelection, removeFacetSelection, performSearch, updatePageOffset} from '../../actions'
 
 class SearchFacetCheckbox extends React.Component {
 
@@ -27,7 +27,7 @@ class SearchFacetCheckbox extends React.Component {
 
     render() {
         const isChecked = this.props.facetValues == null ? false : this.props.facetValues.indexOf(this.props.value.value) > -1;
-        return <Checkbox onChange={this.handleCheckboxChange} checked={isChecked}>{this.props.value.value} ({this.props.value.count})</Checkbox>;
+        return <Form.Check onChange={this.handleCheckboxChange} checked={isChecked} label={this.props.value.value} />;
     }
 }
 

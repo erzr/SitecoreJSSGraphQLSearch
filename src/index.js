@@ -1,85 +1,69 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux'
-import { createStore, applyMiddleware, compose } from 'redux';
-import thunk from 'redux-thunk';
-import ReduxQuerySync from 'redux-query-sync'
+import { BrowserRouter } from 'react-router-dom';
+import AppRoot from './AppRoot';
+import { setServerSideRenderingState } from './RouteHandler';
+import GraphQLClientFactory from './lib/GraphQLClientFactory';
+import config from './temp/config';
+import i18ninit from './i18n';
 
-import './index.css';
-import App from './App';
-import searchReducer from './reducers'
-import {CHANGE_PAGE_OFFSET, CHANGE_QUERY_TEXT, SET_FACET_STATE} from './constants';
+/* eslint-disable no-underscore-dangle */
 
-window.SearchConfig = {
-    Facets: [
-        {
-            Title: "Category",
-            Id: "category"
-        },
-        {
-            Title: "Content Type",
-            Id: "contenttype"
-        }
-    ],
-    Endpoint: {
-        Url: "http://sc9102.sc/sitecore/api/graph/items/master/",
-        ApiKey: "{97FE0B3D-E92A-4CDB-A653-77065FD3E321}"
-    }
-};
+let renderFunction = ReactDOM.render;
 
-const composeEnhancers =
-  typeof window === 'object' &&
-  window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ?   
-    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
-      // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
-    }) : compose;
+/*
+  SSR Data
+  If we're running in a server-side rendering scenario,
+  the server will provide JSON in the #__JSS_STATE__ element
+  for us to acquire the initial state to run with on the client.
 
-const enhancer = composeEnhancers(
-  applyMiddleware(thunk),
-);
+  This enables us to skip a network request to load up the layout data.
+  We are emitting a quiescent script with JSON so that we can take advantage
+  of JSON.parse()'s speed advantage over parsing full JS, and enable
+  working without needing `unsafe-inline` in Content Security Policies.
 
-const store = createStore(searchReducer, enhancer);
+  SSR is initiated from /server/server.js.
+*/
+let __JSS_STATE__ = null;
+const ssrRawJson = document.getElementById('__JSS_STATE__');
+if (ssrRawJson) {
+  __JSS_STATE__ = JSON.parse(ssrRawJson.innerHTML);
+}
+if (__JSS_STATE__) {
+  // push the initial SSR state into the route handler, where it will be used
+  setServerSideRenderingState(__JSS_STATE__);
 
-var params = {
-    offset: {
-        selector: state => state.pageOffset,
-        action: value => ({type: CHANGE_PAGE_OFFSET, offset: value}),
-        stringToValue: string => Number.parseInt(string) || 0,
-        valueToString: value => `${value}`,
-        defaultValue: 0
-    },
-    q: {
-        selector: state => state.query,
-        action: value => ({type: CHANGE_QUERY_TEXT, text: value}),
-        defaultValue: ""
-    }
-};
-
-for (var facet of window.SearchConfig.Facets) {
-    var facetId = facet.Id;
-    params[facetId] = {
-        selector: (function(id) {
-            return function(state) {
-                return state[id];
-            }
-        })(facetId),
-        action: (function(id) {
-            return function(value) {
-                return {type: SET_FACET_STATE, payload: value, facetId: id}
-            }
-        })(facetId),
-        stringToValue: string => string.split(','),
-        valueToString: value => value.join(',')
-    }
+  // when React initializes from a SSR-based initial state, you need to render with `hydrate` instead of `render`
+  renderFunction = ReactDOM.hydrate;
 }
 
-ReduxQuerySync({
-    store,
-    params: params,
-    initialTruth: 'location',
-    replaceState: true,
-})
+/*
+  GraphQL Data
+  The Apollo Client needs to be initialized to make GraphQL available to the JSS app.
+  Not using GraphQL? Remove this, and the ApolloContext from `AppRoot`.
+*/
+// Apollo supports SSR of GraphQL queries, so like JSS SSR, it has an object we can pre-hydrate the client cache from
+// to avoid needing to re-run GraphQL queries after the SSR page loads
+const initialGraphQLState =
+  __JSS_STATE__ && __JSS_STATE__.APOLLO_STATE ? __JSS_STATE__.APOLLO_STATE : null;
 
-let app = <Provider store={store}><App/></Provider>
+const graphQLClient = GraphQLClientFactory(config.graphQLEndpoint, false, initialGraphQLState);
 
-ReactDOM.render(app, document.getElementById('root'));
+/*
+  App Rendering
+*/
+// initialize the dictionary, then render the app
+// note: if not making a multlingual app, the dictionary init can be removed.
+i18ninit().then(() => {
+  // HTML element to place the app into
+  const rootElement = document.getElementById('root');
+
+  renderFunction(
+    <AppRoot
+      path={window.location.pathname}
+      Router={BrowserRouter}
+      graphQLClient={graphQLClient}
+    />,
+    rootElement
+  );
+});

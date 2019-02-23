@@ -1,7 +1,8 @@
 import { CHANGE_ENTERED_SEARCH_TEXT, PERFORM_SEARCH, 
     REQUEST_RESULTS, RECEIVE_RESULTS, ADD_FACET_SELECTION, 
     REMOVE_FACET_SELECTION, CHANGE_QUERY_TEXT,
-    CHANGE_PAGE_OFFSET, SET_FACET_STATE
+    CHANGE_PAGE_OFFSET, SET_FACET_STATE,
+    REGISTER_FACET
  } from '../constants';
 
 const initialState = {
@@ -13,7 +14,28 @@ const initialState = {
     pageInfo: {},
     facetValues: {},
     pageSize: 5,
-    pageOffset: 0
+    pageOffset: 0,
+    registeredFacets: []
+};
+
+const handleFacetRegistration = (state, action) => {
+    let ids = state.registeredFacets || [];
+
+    let idAlreadyExists = ids.indexOf(action.facetId) > -1;
+
+    let chosenIds = ids.slice();
+
+    if(!idAlreadyExists) {
+        chosenIds.push(action.facetId);            
+    }      
+
+    let response = {
+        ...state
+    };
+
+    response.registeredFacets = chosenIds;
+
+    return response;
 };
 
 const handleRemoveFacetSelection = (state, action) => {
@@ -106,6 +128,8 @@ const searchReducer = (state = initialState, action) => {
             response[action.facetId] = action.payload;
 
             return response;
+        case REGISTER_FACET: 
+            return handleFacetRegistration(state, action);
         default:
             return state;
     }

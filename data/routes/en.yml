@@ -1,0 +1,37 @@
+# This is a route layout definition.
+# The route definition defines which Sitecore components are present on a route,
+# what their content data is, and which _placeholder_ they are placed in.
+
+# This particular route definition is for the home route - '/', so it defines the
+# components shown on the initial page of the app.
+
+# You may use equivalent JSON files instead of YAML if you prefer;
+# however YAML is simpler to read and allows comments like this one :)
+
+# Setting an ID is optional, but it will allow referring to this item in internal links
+# the ID can be a app-wide-unique string, or a GUID value.
+id: home-page
+placeholders:
+  jss-main:
+  - componentName: SearchStructure
+    placeholders:
+      jss-search-main:
+      - componentName: SearchHeader
+        fields:
+          title: Search
+      - componentName: SearchBar
+        fields:
+          searchButtonText: Search
+      - componentName: SearchColumns
+        placeholders:
+          jss-search-column-sidebar:
+            - componentName: SearchFacet
+              fields:
+                title: Content Type
+                fieldId: contenttype
+            - componentName: SearchFacet
+              fields:
+                title: Category
+                fieldId: category
+          jss-search-column-main:
+            - componentName: SearchResults
